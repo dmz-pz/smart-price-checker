@@ -1,0 +1,225 @@
+/* Estilos personalizados para el alto contraste y la tipografía */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+body {
+    font-family: 'Arial', sans-serif;
+}
+
+/* Layout: permitir que el área de resultado ocupe el espacio restante sin forzar scroll en el body */
+/* -> importante: min-height:0 en el contenedor flex para que los hijos puedan encogerse */
+body {
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    flex-direction: column;
+    /* height: 100dvh; */
+    margin: 0; 
+    overflow: auto; /* Permite scroll por defecto; controlamos el bloqueo mediante .no-scroll en pantallas grandes */
+    
+    /* fallback color + imagen de fondo */
+    background-color: #071124;
+    background-image: url('../assets/img/4.webp'); 
+    /* background-image: url("https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=2574&auto=format&fit=crop"); */
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale; 
+}
+/* opcional: capa oscura para mejorar contraste del contenido */
+body::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(3,6,12,0.55);
+    backdrop-filter: blur(3px) ;
+    -webkit-backdrop-filter: blur(3px) ;
+    pointer-events: none;
+    z-index: 0;
+}
+/* Asegúrate que el contenedor principal esté por encima */
+body > * { position: relative; z-index: 1; }
+
+.brand-title {
+    font-family: "Inter";
+    font-size: clamp(2rem, 8vw, 5rem);
+    color: white; /* Color base de seguridad */
+    /* Degradado con reflejo */
+    background: linear-gradient(
+        to right, 
+        #ffffff 20%, 
+        #3b82f6 50%, 
+        #ffffff 80%
+    );
+    background-size: 200% auto;
+    
+    /* Estas 3 líneas son las que hacían fallar el texto, 
+       ahora funcionarán porque el contenedor tiene un tamaño estable */
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+    animation: shine-reflection 4s linear infinite;
+    filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5));
+}
+
+@keyframes shine-reflection {
+    to { background-position: 200% center; }
+}
+
+#container-dolar {
+    /* Eliminamos el min-height fijo para que Tailwind maneje el padding */
+    /* El margin-left: auto empuja el elemento a la derecha si está en un header flex */
+    margin-left: auto; 
+    transition: transform 0.3s ease;
+}
+
+/* Ajuste para que el header no se oculte de golpe si quieres mantener el dólar siempre visible */
+header.hidden {
+    display: none; /* O puedes cambiarlo a opacity-0 si prefieres animar */
+} 
+
+.hidden-input {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+    opacity: 0;
+    pointer-events: none; /* Opcional: evita clics accidentales, pero permite input */
+} 
+
+.logo-rotatorio{
+    perspective: 1000px; 
+    filter: saturate(1.1);
+    animation: rotar 8s linear infinite; 
+    transform-style: preserve-3d;
+} 
+
+@keyframes rotar{
+    from{
+        transform: rotateY(0deg); 
+    } 
+    to{
+        transform: rotateY(360deg);
+    }
+}
+
+#result-display {
+    flex: 1 1 auto;     /* ocupar espacio restante */
+    min-height: 0;      /* permitir que el hijo limite su alto */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow: visible;   /* evitar scroll del body */
+}
+
+/* .product-card ya no hace scroll, el ajuste se hace vía escala desde JS */
+.product-card {
+    width: 100%;
+    max-width: 64rem;
+    height: 100%; /* ajustar si header/footer cambian */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible; /* importante: quitar overflow:auto */
+    margin: 0 auto;
+    
+}
+
+/* contenedor interno que se escala si hace falta */
+.card-inner {
+    width: 100%;
+    box-sizing: border-box;
+    padding-bottom: 1rem;
+    transform-origin: top center;
+    will-change: transform;
+} 
+
+
+/* evita scroll del body cuando mostramos el producto; se alterna desde JS */
+/* En pantallas grandes bloqueamos el scroll global. En móviles permitimos scroll para mejor navegabilidad. */
+@media (min-width: 640px) {
+    body.no-scroll { overflow: hidden; }
+}
+
+/* En pantallas pequeñas permitimos scrolling dentro del área de resultados con inercia táctil */
+@media (max-width: 640px) {
+    #result-display { overflow: auto; -webkit-overflow-scrolling: touch; }
+    .product-card { height: auto; }
+}
+
+/* Animaciones de aparición/desaparición para producto */
+@keyframes fadeIn {
+    from { opacity: 0;  }
+    to   { opacity: 1;  }
+}
+@keyframes fadeOut {
+    from { opacity: 1;  }
+    to   { opacity: 0;  }
+}
+/* .fade-in { animation: fadeIn 420ms cubic-bezier(.2,.9,.3,1) both; } */
+.fade-out { animation: fadeOut 320ms cubic-bezier(.4,.0,.2,1) both; }
+
+
+/* Glassmorphism mejorado: mayor blur, sombra y contraste para que la carta "flote" */
+.glass-card {
+    /* Fondo ligeramente más opaco + gradiente suave para volumen */
+    /* background: rgba(9, 2, 109, 0.082); */
+    background: transparent;
+    background-image: linear-gradient(
+        120deg,
+        rgba(255,255,255,0.3),
+        rgba(23, 2, 102, 0.4)
+    );
+    /* background-color: rgba(6,10,18,0.52); fallback para browsers sin backdrop-filter */
+    backdrop-filter: blur(16px) ;
+    -webkit-backdrop-filter: blur(16px) ;
+    border: 2px solid rgba(255,255,255,0.18);
+    border-radius: 24px;  
+    box-shadow: 0 15px 35px 0 rgba(0, 0, 0, 0.5);
+    overflow: visible; /* permitir resplandor exterior */
+    /* max-height: 90dvh; */
+    position: relative; 
+    z-index: 10;
+    will-change: backdrop-filter;
+    isolation: isolate;
+} 
+
+/* Texto dentro de la tarjeta: colores claros y sombra para legibilidad sobre fondo ocupado */
+.glass-card h1,
+.glass-card .price,
+.glass-card .promotion-badge,
+.glass-card, 
+.glass-card span {
+    color: rgba(255,255,255,0.96);
+    text-shadow: 0 6px 24px rgba(3,7,18,0.55);
+}
+
+/* Promoción: contraste alto, borde y animación de brillo */
+.promotion-badge {
+    background: linear-gradient(90deg, rgba(255,223,0,0.98), rgba(255,180,0,0.98));
+    color: #06101a;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    display: inline-block;
+    font-weight: 800;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+}
+.promotion-badge.animate-shine {
+    animation: promoShine 1600ms ease-in-out infinite;
+}
+
+
+/* Asegura que los hijos estén por encima de la capa oscura */
+body > * { position: relative; z-index: 1; } 
+
+/* Ajustes para pantallas medianas/pequeñas */
+@media (max-width: 1024px) {
+    #container-dolar { padding-right: 0.75rem; }
+    .brand-title { font-size: 3.25rem; } /* opcional reducir tamaño del título */
+}
+
+@media (max-width: 640px) {
+    header { flex-direction: column; align-items: center; gap: 0.5rem; }
+    #container-dolar { margin-left: 0; padding-right: 0; order: 2; } /* opcional: colocarlo debajo del título */
+    .brand-title { text-align: center; font-size: 2.5rem; }
+}
+/* End of file */

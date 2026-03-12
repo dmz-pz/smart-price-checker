@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificador de Precios Kiosco V1</title>
+    <!-- Carga de Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- ENLACE A LA HOJA DE ESTILOS EXTERNA -->
+    <link rel="stylesheet" href="css/styles.css"> 
+    <link rel="stylesheet" href="css/microfono.css">
+    <link rel="stylesheet" href="css/titulo.css">
+    <link rel="stylesheet" href="css/prueba.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class=" relative h-screen  flex flex-col items-center p-4 overflow-hidden">
+
+    <!-- Estructura principal de la Interfaz -->
+    <header class="relative w-screen  z-10 flex justify-between items-start p-8 md:p-12">
+        <div class="flex flex-col">
+            <h1 class="text-4xl md:text-6xl lg:text-6xl font-black tracking-tighter uppercase leading-none text-white ">
+                Consultor de <span class="text-blue-500">Precios</span>
+            </h1>
+            <div id="reloj-container" class="flex flex-row p-4 items-center gap-6 bg-dark-800/30 text-white/50 text-2xl font-medium tracking-widest uppercase"> 
+                <i class="fa-regular fa-clock icono-reloj animate-pulse"></i>
+                <span id="tiempo" class="">00:00:00</span>
+            </div>
+        </div>
+        <div id="container-dolar"></div>
+    </header>
+
+    <!-- Formulario de Búsqueda -->
+    <form id="search-form" class="w-full max-w-6xl mx-auto px-4 gap-x-4 flex justify-center items-center">
+        <div class="relative group">
+            <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+            <div class="relative flex items-center bg-white rounded-[2.5rem] shadow-2xl overflow-hidden p-2">
+                <div class="pl-6 pr-4">
+                    <Search class="w-8 h-8 text-zinc-400" />
+                </div>
+                <input
+                    id= "barcode-input"
+                    type="text"
+                    placeholder="0000000000000"
+                    class="flex-1 bg-transparent border-none text-3xl md:text-4xl font-bold text-zinc-900 placeholder:text-zinc-200 focus:ring-0 focus:outline-none py-4"
+                />
+                <button 
+                id="search-button"
+                class="bg-blue-600 hover:bg-blue-700 text-white p-4 md:p-6 rounded-[2rem] transition-all active:scale-95 shadow-lg flex items-center gap-2"
+                >
+                <span class="hidden md:inline font-bold uppercase tracking-widest text-sm">Consultar</span>
+                </button>
+            </div>
+        </div>
+        <button id="voice-search-btn" type="button" aria-label="Buscar por voz" class="hover:scale-110 transition-transform mx-1">
+            <!-- ícono de micrófono (Material Design) -->
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 14 0h-2zm-5 8c-3.31 0-6-2.69-6-6h2a4 4 0 0 0 8 0h2c0 3.31-2.69 6-6 6z"/>
+            </svg>
+        </button>
+    </form>
+    <!-- Área de Mensajes de Estado -->
+    <div id="status-message" class="text-center w-full max-w-4xl">
+        <!-- Mensajes de Carga o Error aparecerán aquí -->
+    </div>
+    
+    <!-- Área de Resultados -->
+    <div id="result-display" class="text-center w-full max-w-4xl">
+        <!-- Resultados del producto aparecerán aquí -->
+    </div>
+
+    <footer class="mt-auto p-4 text-white text-base">
+        <p id="device-ip">Cargando IP...</p>
+    </footer>
+
+    <!-- Canvas confetti (para celebraciones de promoción) -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Enlace al módulo JavaScript. Usamos type="module" para un mejor manejo de dependencias. -->
+    <script type="module" src="js/price-checker.js"></script> 
+    <script type="module" src="js/tasa_dolar.js"></script> 
+    <script type="module" src="js/voz_recognition.js"></script>
+    <script type="module" src="js/utils/tiempo.js"></script>
+
+</body>
+</html>

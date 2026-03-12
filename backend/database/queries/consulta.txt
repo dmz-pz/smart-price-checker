@@ -1,0 +1,19 @@
+"""
+                SELECT
+                    tv_producto.cod_interno,
+                    tv_producto.txt_descripcion_larga,
+                    ta_precio_producto.mto_precio,
+                    td_tipo_impuesto.porc_impuesto,
+                    tb_moneda.tasa_vig
+                FROM DBA.tv_producto
+                INNER JOIN DBA.tv_barra ON tv_producto.cod_interno = tv_barra.cod_interno
+                INNER JOIN DBA.ta_precio_producto ON tv_producto.cod_interno = ta_precio_producto.cod_interno
+                INNER JOIN DBA.tb_moneda ON tb_moneda.cod_internacional = 'USD'
+                INNER JOIN DBA.td_tipo_impuesto ON tv_producto.cod_impuesto = td_tipo_impuesto.cod_impuesto
+                WHERE
+                    tv_barra.cod_barra = ? 
+                    AND tv_producto.ind_inactivo = 'A'
+                    AND ta_precio_producto.mto_precio > 0
+                ORDER BY
+                    ta_precio_producto.fecha_cambio DESC
+                """ 

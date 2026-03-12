@@ -1,0 +1,3 @@
+SELECT td_cliente_evento.valor  
+from DBA.td_cliente_evento 
+INNER JOIN DBA.tm_cliente_evento on td_cliente_evento.id_evento=tm_cliente_evento.id_evento WHERE td_cliente_evento.parametro2='" + codigo + "' AND tm_cliente_evento.tipo_evento='L' AND tm_cliente_evento.fecha_inicio<='" + dates + "' AND tm_cliente_evento.fecha_fin>='" + dates + "'"
