@@ -3,10 +3,14 @@ from flask_cors import CORS
 from routes.views import views_bp
 from routes.api import api_bp
 from services.search_service import SearchService 
+import os
+from dotenv import load_dotenv 
+
+load_dotenv()
 
 class Config:
-    DEBUG = True
-    PORT = 5020
+    DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    PORT = int(os.environ.get('PORT', 5020))
 
 app = Flask(
     __name__,
