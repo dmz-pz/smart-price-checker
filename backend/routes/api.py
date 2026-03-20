@@ -43,18 +43,10 @@ def get_my_ip():
 
 @api_bp.route('/search-voice', methods=["GET"] )
 def search_voice():
-    #data = request.get_json()
-    #query = data.get('query', '')
-    
     query = request.args.get('q', '')
     if not query:
         return jsonify({"error": "No se recibió transcripción"}), 400 
     print(f"DEBUG: Buscando transcripción: {query}") 
-    
-    # Aquí obtendrías tus productos de la base de datos
-    # productos = db.get_products() 
-    productos_mock = [{"id": 1, "nombre": "Aceite de Girasol", "precio": 10.5}, ...]
-
     resultados = SearchService.fuzzy_search_products(query)
     
     return jsonify(resultados), 200

@@ -2,5 +2,9 @@
   "dependencies": {
     "@tailwindcss/cli": "^4.2.1",
     "tailwindcss": "^4.2.1"
+  },
+  "scripts": {
+    "dev": "npx @tailwindcss/cli -i ./frontend/src/css/styles.css -o .frontend/src/css/output.css --watch",
+    "build": "npx @tailwindcss/cli -i ./frontend/src/css/styles.css -o .frontend/src/css/output.css --minify"
   }
 }

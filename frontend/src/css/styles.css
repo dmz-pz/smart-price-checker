@@ -1,4 +1,5 @@
 /* Estilos personalizados para el alto contraste y la tipografía */
+@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 body {
     font-family: 'Arial', sans-serif;
@@ -105,21 +106,22 @@ header.hidden {
     flex: 1 1 auto;     /* ocupar espacio restante */
     min-height: 0;      /* permitir que el hijo limite su alto */
     display: flex;
-    align-items: center;
+    align-items: start;
     justify-content: center;
     padding: 1rem;
-    overflow: visible;   /* evitar scroll del body */
+    /* overflow: visible;   evitar scroll del body */
 }
 
 /* .product-card ya no hace scroll, el ajuste se hace vía escala desde JS */
 .product-card {
     width: 100%;
     max-width: 64rem;
-    height: 100%; /* ajustar si header/footer cambian */
+    height: auto; /* ajustar si header/footer cambian */
     display: flex;
-    align-items: center;
+    align-items: start;
     justify-content: center;
     overflow: visible; /* importante: quitar overflow:auto */
+    will-change: opacity, transform; /* para la animación CSS */
     margin: 0 auto;
     
 }
@@ -142,22 +144,30 @@ header.hidden {
 
 /* En pantallas pequeñas permitimos scrolling dentro del área de resultados con inercia táctil */
 @media (max-width: 640px) {
-    #result-display { overflow: auto; -webkit-overflow-scrolling: touch; }
+    #result-display { 
+        overflow-y: auto; 
+        -webkit-overflow-scrolling: touch;
+        align-items: flex-start; /* ← añadir esto */
+    }
     .product-card { height: auto; }
 }
 
 /* Animaciones de aparición/desaparición para producto */
-@keyframes fadeIn {
-    from { opacity: 0;  }
-    to   { opacity: 1;  }
-}
 @keyframes fadeOut {
     from { opacity: 1;  }
     to   { opacity: 0;  }
 }
-/* .fade-in { animation: fadeIn 420ms cubic-bezier(.2,.9,.3,1) both; } */
-.fade-out { animation: fadeOut 320ms cubic-bezier(.4,.0,.2,1) both; }
 
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
 
 /* Glassmorphism mejorado: mayor blur, sombra y contraste para que la carta "flote" */
 .glass-card {
@@ -179,7 +189,7 @@ header.hidden {
     /* max-height: 90dvh; */
     position: relative; 
     z-index: 10;
-    will-change: backdrop-filter;
+    will-change: transform, backdrop-filter;
     isolation: isolate;
 } 
 
@@ -206,6 +216,22 @@ header.hidden {
 .promotion-badge.animate-shine {
     animation: promoShine 1600ms ease-in-out infinite;
 }
+
+.fade-in {
+    animation: slideUpFade 420ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+.fade-in .glass-card > * {
+    opacity: 0;
+    animation: slideUpFade 380ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+/* Cada hijo aparece 80ms después del anterior */
+.fade-in .glass-card > *:nth-child(1) { animation-delay: 80ms; }
+.fade-in .glass-card > *:nth-child(2) { animation-delay: 160ms; }
+.fade-in .glass-card > *:nth-child(3) { animation-delay: 240ms; }
+.fade-in .glass-card > *:nth-child(4) { animation-delay: 320ms; }
+
+.fade-out { animation: fadeOut 320ms cubic-bezier(.4,.0,.2,1) both; }
 
 
 /* Asegura que los hijos estén por encima de la capa oscura */

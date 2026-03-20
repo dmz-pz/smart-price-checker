@@ -25,7 +25,12 @@ export function renderError(elements, message) {
 
 export function renderInitialLogo(elements, logoPath = 'assets/img/logo_minegocio.png') {
     if (!elements || !elements.result) return;
-    elements.result.innerHTML = `\n        <div class="mt-4 md:mt-10 flex justify-center items-center p-4">\n            <img src="${logoPath}" alt="Logo" class="logo-rotatorio w-[60%] sm:w-[40%] max-w-[300px] object-contain drop-shadow-xl"/>\n        </div>\n    `;
+    elements.result.innerHTML = 
+    `\n
+    <div class="mt-4 md:mt-10 flex justify-center items-center p-4">\n            
+        <img src="${logoPath}" alt="Logo" class="logo-rotatorio w-[60%] sm:w-[40%] max-w-75 object-contain drop-shadow-xl"/>\n        
+    </div>
+    \n    `;
 }
 
 import { formatCurrency } from '../utils/format.js';
@@ -72,10 +77,14 @@ export function displayProduct(elements, product) {
                                         Ref. USD ${formatCurrency(product.precio_en_dolares)}
                                     </div>
                                 `}
-                                <div class=" md:mt-5 flex justify-center items-center">
+                                <div class=" md:mt-5 flex justify-center items-center"
+                                    style="min-height: 120px; width: 100%;"
+                                    >
                                     <img src="assets/img/logo_minegocio.png" 
                                     alt="Logo" 
-                                    class="logo-rotatorio w-[60%] sm:w-[40%] max-w-[300px] object-contain drop-shadow-xl"/>
+                                    class="logo-rotatorio w-[60%] sm:w-[40%] max-w-75 object-contain drop-shadow-xl"
+                                    style="width: clamp(80px, 30%, 180px); height: auto;"
+                                    />
                                 </div>
                             `
                         }
@@ -100,8 +109,18 @@ export function displayProduct(elements, product) {
         </div>
     `;
 
-    setTimeout(() => fitProductCard(elements), 50);
-    if (isOnPromotion) setTimeout(() => launchConfetti(), 120);
+    // card.addEventListener('animationend', () => {
+            // fitProductCard(elements);
+            // }, { once: true }); // { once: true } elimina el listener automáticamente
+    if (isOnPromotion) launchConfetti();
+    const card = elements.result.querySelector('.product-card');
+
+    // Forzar reanimación aunque el elemento ya existiera
+    if (card) {
+        card.classList.remove('fade-in');
+        void card.offsetWidth; // fuerza reflow del navegador
+        card.classList.add('fade-in');
+    }
 }
 
 export function fitProductCard(elements) {
@@ -126,9 +145,116 @@ export function fitProductCard(elements) {
 
     const scale = Math.min(availH / cH, availW / cW, 1);
     if (scale < 1) {
-        glass.style.transform = `scale(${Math.max(scale, 0.65)})`;
+        glass.style.transform = `scale(${Math.max(scale, 0.75)})`;
         glass.style.transformOrigin = 'top center';
     } else {
         glass.style.transform = '';
     }
 }
+
+// ── ui.js — función renderBentoGrid ──────────────────────────────────────────
+//
+// Esta función recibe los resultados de /search-voice, que en este punto solo
+// contienen: { id, nombre, confidence }
+//
+// NO intenta mostrar precios ni disponibilidad porque esos datos no existen aún.
+// Cuando el usuario seleccione una tarjeta, price-checker.js llamará a
+// /buscar_producto/<id> y mostrará toda esa información con displayProduct().
+//
+export function renderBentoGrid(elements, resultados, onSelect) {
+    if (!elements?.result) return;
+ 
+    const n = resultados.length;
+ 
+    // Asigna el color del badge según el porcentaje de coincidencia:
+    //   verde  → 80% o más  (alta confianza, casi seguro es lo que busca)
+    //   amarillo → 60-79%   (coincidencia media, puede ser)
+    //   rojo   → menos de 60% (coincidencia baja, se muestra pero con advertencia)
+    function badgeStyle(confidence) {
+        if (confidence >= 80) return 'background:rgba(163,230,53,0.15); color:#a3e635;';
+        if (confidence >= 60) return 'background:rgba(251,191,36,0.15); color:#fbbf24;';
+        return 'background:rgba(239,68,68,0.15); color:#f87171;';
+    }
+ 
+    // El primer resultado (mayor confianza) ocupa todo el ancho cuando hay 3 o más,
+    // para destacarlo visualmente como la mejor opción.
+    function cardStyle(i) {
+        return (i === 0 && n >= 3) ? 'grid-column: span 2;' : '';
+    }
+ 
+    elements.result.innerHTML = `
+        <div style="padding: 1rem 0;">
+ 
+            <p class="text-2xl text-white mb-3">
+                ${n} resultado${n !== 1 ? 's' : ''} para tu búsqueda — selecciona un producto
+            </p>
+ 
+            <div style="
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            ">
+                ${resultados.map((p, i) => `
+                    <div
+                        class="bento-card glass-card cursor-pointer
+                               transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        data-idx="${i}"
+                        style="${cardStyle(i)} padding: 1rem; border-radius: 12px;"
+                    >
+                        <!-- Nombre del producto -->
+                        <p class="text-gray-100 font-semibold text-sm leading-snug"
+                           style="margin: 0 0 10px;">
+                            ${p.nombre}
+                        </p>
+ 
+                        <!-- Código de barras — fuente monoespaciada para legibilidad -->
+                        <p class="font-mono text-xs text-gray-400"
+                           style="margin: 0 0 10px; letter-spacing: 0.05em;">
+                            ${p.id ?? p.codigo_barras ?? '—'}
+                        </p>
+ 
+                        <!-- Badge de coincidencia -->
+                        <span style="
+                            display: inline-block;
+                            font-size: 11px;
+                            font-weight: 600;
+                            padding: 2px 8px;
+                            border-radius: 9999px;
+                            ${badgeStyle(p.confidence)}
+                        ">
+                            ${p.confidence}% coincidencia
+                        </span>
+ 
+                        <!-- Barra visual de confianza -->
+                        <div style="
+                            height: 3px;
+                            border-radius: 2px;
+                            background: rgba(255,255,255,0.08);
+                            margin-top: 10px;
+                        ">
+                            <div style="
+                                height: 100%;
+                                border-radius: 2px;
+                                background: #378ADD;
+                                width: ${p.confidence}%;
+                                transition: width 0.4s ease;
+                            "></div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+ 
+        </div>
+    `;
+ 
+    // Registrar el listener de selección en cada tarjeta.
+    // Al hacer clic, extrae el índice del array original y llama a onSelect()
+    // con el objeto completo del resultado, que price-checker.js usará para
+    // hacer la petición individual a /buscar_producto/<id>.
+    elements.result.querySelectorAll('.bento-card').forEach(card => {
+        card.addEventListener('click', () => {
+            onSelect(resultados[parseInt(card.dataset.idx)]);
+        });
+    });
+}
+ 
