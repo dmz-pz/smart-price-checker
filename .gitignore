@@ -2,7 +2,7 @@
 /logs
 /venv 
 .env
-**/__pycache__/
+**/__pycache__
 /.vscode 
 
 pruebas_debugger.py
