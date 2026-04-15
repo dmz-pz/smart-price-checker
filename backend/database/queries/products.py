@@ -128,4 +128,3 @@ def obtener_catalogo_busqueda():
 
 
 
-

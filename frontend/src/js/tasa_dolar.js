@@ -2,7 +2,7 @@
  * Lógica para el Verificador de Precios con actualización de tasa BCV.
  */
 
-const API_BASE_URL = 'http://192.168.15.103:5020/api/v1';
+const API_BASE_URL = 'http://192.168.15.102:5020/api/v1';
 
 // Variables de estado
 let lastTasaValue = null;
@@ -58,8 +58,8 @@ function renderTasa(valor) {
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                     </span>
                 </div>
-                <span class="text-white text-xl md:text-3xl font-black tracking-tight">
-                    <span class="text-white text-xs md:text-sm text-neutral-400 font-black tracking-tight">Bs.</span> 
+                <span class="text-white text-base md:text-2xl font-black tracking-tight">
+                    <span class="text-neutral-400 text-xs md:text-sm font-black tracking-tight">Bs.</span> 
                     ${valor.toFixed(2)}
                 </span>
             </div>
@@ -74,14 +74,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Configurar actualización automática cada 5 minutos (300,000 ms)
     setInterval(actualizarTasaDolar, 300000);
-
-    // ... lógica de búsqueda de productos existente ...
-    const form = document.getElementById('search-form');
-    const input = document.getElementById('barcode-input');
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        // Tu lógica de búsqueda aquí...
-        console.log("Buscando producto:", input.value);
-    });
 });

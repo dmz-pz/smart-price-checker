@@ -22,10 +22,11 @@ app.config.from_object(Config)
 CORS(app)
 
 # 1. Iniciar la carga de datos en segundo plano al arrancar la app
-SearchService.start_background_sync() 
+#earchService.start_background_sync() 
 
 # REGISTRO DE BLUEPRINTS
 app.register_blueprint(views_bp)
+
 # Al agregar url_prefix, tus rutas ahora serán /api/v1/tasa, etc.
 app.register_blueprint(api_bp, url_prefix='/api/v1') 
 

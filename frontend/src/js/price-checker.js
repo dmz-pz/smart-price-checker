@@ -23,8 +23,8 @@
  */
 
 // ── Configuración ──────────────────────────────────────────────────────────────
-const API_BASE_URL = 'http://192.168.15.103:5020/api/v1';
-const ENABLE_MOCK_DESC = true;
+const API_BASE_URL = 'http://192.168.15.102:5020/api/v1';
+const ENABLE_MOCK_DESC = false;
 
 // ── Estado Global ──────────────────────────────────────────────────────────────
 //
@@ -307,11 +307,11 @@ async function searchVoice(transcripcion) {
 
 /**
  * Determina si una cadena es un código de barras.
- * Un código de barras es una secuencia numérica de 6 o más dígitos.
+ * Un código de barras es cualquier secuencia numérica.
  * Cualquier otra cosa (letras, espacios) se trata como texto descriptivo.
  */
 function isBarcode(text) {
-    return /^\d{6,}$/.test(String(text).trim());
+    return /^\d+$/.test(String(text).trim());
 }
 
 
@@ -335,7 +335,7 @@ async function handleBentoSelect(productoResumen) {
     const codigo = productoResumen.codigo_barras ?? productoResumen.id;
  
     try {
-        const res = await fetch(`${API_BASE_URL}/buscar_producto/${codigo}`);
+        const res = await priceApi.searchByCode(codigo);
         if (!res.ok) throw new Error(`Producto '${productoResumen.nombre}' no encontrado`);
         const productoCompleto = await res.json();
         updateUI({ loading: false, product: productoCompleto });

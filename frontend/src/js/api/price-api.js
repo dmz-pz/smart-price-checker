@@ -31,6 +31,9 @@ export default class PriceAPI {
             return data;
         } catch (err) {
             if (err.name === 'AbortError') return null;
+            if (err.status === 404) {
+                throw new Error(`Producto con código '${code}' no encontrado.`);
+            }
             if (this.enableMock) return this._mock(code);
             throw err;
         }
@@ -42,6 +45,9 @@ export default class PriceAPI {
             return Array.isArray(data) ? data[0] : data;
         } catch (err) {
             if (err.name === 'AbortError') return null;
+            if (err.status === 404) {
+                throw new Error(`No se encontraron productos para la búsqueda '${q}'.`);
+            }
             if (this.enableMock) return this._mock(q);
             throw err;
         }

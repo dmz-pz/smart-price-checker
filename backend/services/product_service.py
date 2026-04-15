@@ -62,14 +62,17 @@ def consultar_detalle_producto(cod_barra: str) -> Optional[Dict[str, Any]]:
     # PASO 1: Obtener datos crudos del Producto
     # ---------------------------------------------
     producto_peso = None
-    es_pesado = False
+    es_pesado = False 
     if cod_barra.startswith('21'):
         es_pesado = True
         id_producto_pesado = f'00000000{cod_barra[2:7]}'
         producto_peso = cod_barra[7:12]
         raw_data = obtener_producto(id_producto_pesado)
     else:
-        raw_data = obtener_producto(cod_barra) # Asumiendo que has renombrado 'obtener_producto' a 'obtener_producto_raw'
+        # Completar el código de barras con ceros a la izquierda si tiene menos de 13 dígitos
+        if len(cod_barra) < 13:
+            cod_barra = cod_barra.zfill(13)
+        raw_data = obtener_producto(cod_barra)
 
     if not raw_data:
         # Si no hay datos, retorna None (el controlador Flask manejará el 404) 
@@ -177,7 +180,3 @@ def tasa_del_dia():
         cantidad_final = float(cantidad[0])  
         return cantidad_final 
 
-
-#print(consultar_detalle_producto('7592217001466'))
-# 
-#7591002800062
