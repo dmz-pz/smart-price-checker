@@ -24,6 +24,7 @@
 
 // ── Configuración ──────────────────────────────────────────────────────────────
 const API_BASE_URL = 'http://192.168.15.102:5020/api/v1';
+const SIGNAGE_API_URL = 'http://192.168.15.102:5030/api/v1/signage';
 const ENABLE_MOCK_DESC = false;
 
 // ── Estado Global ──────────────────────────────────────────────────────────────
@@ -59,9 +60,13 @@ import {
     renderInitialLogo,
     renderBentoGrid,   // NUEVO: renderiza la grilla de múltiples resultados
 } from './ui/ui.js';
+import { SignageManager } from './signage/signage-manager.js';
 
 // Cliente API: encapsula fetch, AbortController y los mocks de desarrollo.
 const priceApi = new PriceAPI({ baseUrl: API_BASE_URL, enableMock: ENABLE_MOCK_DESC });
+
+// Gestor del Modo Reposo Publicitario (Offline-First en IndexedDB)
+let signageManager = null;
 
 // Referencias a nodos del DOM (se rellenan en getDOMElements() al cargar la página).
 let inputElement, statusElement, resultElement, searchButton, formElement, headerElement;
@@ -198,6 +203,7 @@ function updateUI(state) {
         // ── CASO A: Producto único ──────────────────────────────────────────
         // Guardamos referencia para keepProduct y llamamos al renderizador de ui.js.
         currentProduct = state.product;
+        signageManager?.setUIBusy(true);
         displayProduct(elements, state.product);
 
         // Auto-ocultar con animación fade-out tras 5 segundos.
@@ -242,12 +248,24 @@ function updateUI(state) {
         // El bento grid NO tiene auto-ocultar: permanece hasta que el usuario
         // seleccione un producto O el escáner reciba un nuevo código.
         currentProduct = null; // No hay producto único activo
+        signageManager?.setUIBusy(true);
         renderBentoGrid(elements, state.bentoResults, handleBentoSelect);
+
+        // Si el cliente se retira sin tocar ninguna tarjeta del Bento Grid tras 25 s,
+        // volver automáticamente a la vista inicial para permitir el Modo Reposo Publicitario.
+        autoHideTimer = setTimeout(() => {
+            updateUI({ loading: false });
+            inputElement.value = '';
+        }, 25000);
 
     } else if (!state.loading && !state.error) {
         // ── CASO C: Estado limpio → Vista inicial ───────────────────────────
         currentProduct = null;
         renderInitialLogo(elements);
+        signageManager?.setUIBusy(false);
+    } else {
+        // En estado de carga o mensaje de error, pausar el temporizador de publicidad
+        signageManager?.setUIBusy(true);
     }
 }
 
@@ -372,29 +390,72 @@ async function handleScannedCode(code) {
 
 document.addEventListener('DOMContentLoaded', () => {
     getDOMElements();
+
+    // Inicializar el Gestor de Señalización Digital (Modo Reposo + IndexedDB)
+    signageManager = new SignageManager({
+        signageApiUrl: SIGNAGE_API_URL,
+        canStartCallback: () => {
+            const hasCard  = Boolean(resultElement?.querySelector('.product-card'));
+            const hasBento = Boolean(resultElement?.querySelector('.bento-card'));
+            const hasText  = Boolean(inputElement?.value.trim());
+            const hasScan  = __scanBuffer.length > 0;
+            return !hasCard && !hasBento && !hasText && !hasScan;
+        },
+        onExitSignage: () => {
+            // Al salir de la publicidad por un toque en pantalla, devolver el foco al input
+            // (solo si no estamos en medio de una ráfaga del escáner en __scanBuffer)
+            if (__scanBuffer.length === 0 && inputElement) {
+                inputElement.focus();
+            }
+        }
+    });
+
     updateUI({ loading: false }); // Arranca en vista inicial (logo)
 
-    // ── Mostrar IP del dispositivo en el footer ──────────────────────────────
+    // ── Mostrar IP del dispositivo en el footer e iniciar Sincronización ────
     // Útil en kioscos para saber rápidamente qué terminal está teniendo problemas.
     (async function fetchDeviceIp() {
+        let detectedIp = '127.0.0.1';
         try {
             const resp = await fetch(`${API_BASE_URL}/my_ip`);
-            if (!resp.ok) return;
-            const data = await resp.json();
-            const deviceIp = document.getElementById('device-ip');
-            if (deviceIp && data?.ip) deviceIp.textContent = data.ip;
+            if (resp.ok) {
+                const data = await resp.json();
+                const deviceIp = document.getElementById('device-ip');
+                if (data?.ip) {
+                    detectedIp = data.ip;
+                    if (deviceIp) deviceIp.textContent = data.ip;
+                }
+            }
         } catch (_) { /* Silenciar */ }
+
+        // Iniciar motor Offline-First con la IP detectada
+        signageManager.init(detectedIp);
     })();
+
+    // Reiniciar el temporizador de inactividad ante cualquier toque o clic en la interfaz
+    window.addEventListener('pointerdown', () => {
+        if (signageManager?.isActive()) {
+            signageManager.interrupt();
+        } else {
+            signageManager?.resetInactivityTimer();
+        }
+    }, { passive: true });
 
     // ── Capturador global del lector de código de barras físico ─────────────
     //
-    // Cuando hay un producto en pantalla, el formulario de búsqueda está oculto
-    // (clase 'hidden-input'). El escáner envía teclas al documento, no al input.
-    // Este listener las captura, las acumula en __scanBuffer (con timeout de 120 ms
-    // para separar escaneos consecutivos) y al recibir Enter procesa el buffer.
+    // Si el Modo Publicidad está activo, el PRIMER dígito enviado por el escáner
+    // interrumpe la reproducción en < 2 ms de forma síncrona sin perder ese primer carácter.
     //
     window.addEventListener('keydown', (ev) => {
-        // Si el foco YA está en el input, el formulario 'submit' lo maneja.
+        // 1. INTERRUPCIÓN INSTANTÁNEA al detectar la primera tecla (del escáner o teclado)
+        if (signageManager?.isActive()) {
+            signageManager.interrupt({ skipCallback: true });
+        } else {
+            signageManager?.resetInactivityTimer();
+        }
+
+        // 2. Si el foco YA está en el input, el carácter entra directo a inputElement.value
+        //    y el evento 'submit' del formulario lo procesará al llegar el Enter.
         if (document.activeElement === inputElement) return;
 
         if (ev.key === 'Enter') {
