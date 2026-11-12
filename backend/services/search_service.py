@@ -107,7 +107,7 @@ if __name__ == "__main__":
     SearchService.load_from_database()
 
     # 2. Simulamos una entrada de voz
-    busqueda_voz = "Cuanto cuesta el arroz mary" 
+    busqueda_voz = "Aceitunas eureka" 
     print(f"\n🎤 Usuario dice: '{busqueda_voz}'")
     
     resultados = SearchService.fuzzy_search_products(busqueda_voz)

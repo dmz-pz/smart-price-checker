@@ -11,9 +11,12 @@ def obtener_producto(cod_producto):
             querie = """
             SELECT TOP 1 -- Solo queremos el precio más reciente
                 p.cod_interno,
+                b.cod_barra,
                 p.txt_descripcion_larga,
                 pre.mto_precio,
                 imp.porc_impuesto,
+                p.ind_pesado,
+                p.cod_departamento,
                 mon.tasa_vig
             FROM DBA.tv_producto AS p
             INNER JOIN DBA.tv_barra AS b ON p.cod_interno = b.cod_interno
@@ -127,4 +130,126 @@ def obtener_catalogo_busqueda():
         return []
 
 
+import logging
 
+def obtener_columnas_tabla(nombre_tabla: str, schema: str = 'DBA'):
+        """
+        Obtiene el listado de columnas, tipo de dato y si admite nulos de una tabla 
+        en SAP SQL Anywhere / Sybase.
+        """
+        try:
+            with MiConexionBD() as db:
+                query = """
+                    SELECT 
+                        c.column_name,
+                        d.domain_name AS tipo_dato,
+                        c.width AS longitud,
+                        c.nulls AS permite_nulos
+                    FROM SYS.SYSTAB t
+                    JOIN SYS.SYSCOLUMN c ON t.table_id = c.table_id
+                    JOIN SYS.SYSUSERPERM u ON t.creator = u.user_id
+                    JOIN SYS.SYSDOMAIN d ON c.domain_id = d.domain_id
+                    WHERE u.user_name = ?
+                    AND t.table_name = ?
+                    ORDER BY c.column_id
+                """
+                cursor = db.cursor()
+                cursor.execute(query, (schema, nombre_tabla))
+                
+                columns = [col[0] for col in cursor.description]
+                resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+                if not resultados:
+                    logging.warning(f"No se encontraron columnas para '{schema}.{nombre_tabla}'.")
+
+                return resultados
+
+        except ConnectionError as e:
+            logging.error(f"Error de conexión al inspeccionar '{schema}.{nombre_tabla}': {e}")
+            raise
+        except Exception as e:
+            logging.error(f"Error al obtener columnas de '{schema}.{nombre_tabla}': {e}")
+            return []
+
+def obtener_tipo_campo(nombre_tabla: str, nombre_columna: str, schema: str = 'DBA'):
+    """
+    Retorna la información del tipo de dato de un campo específico.
+    """
+    try:
+        with MiConexionBD() as db:
+            query = """
+                SELECT 
+                    c.column_name,
+                    d.domain_name AS tipo_dato,
+                    c.width AS longitud,
+                    c.nulls AS permite_nulos
+                FROM SYS.SYSTAB t
+                JOIN SYS.SYSCOLUMN c ON t.table_id = c.table_id
+                JOIN SYS.SYSUSERPERM u ON t.creator = u.user_id
+                JOIN SYS.SYSDOMAIN d ON c.domain_id = d.domain_id
+                WHERE u.user_name = ?
+                  AND t.table_name = ?
+                  AND c.column_name = ?
+            """
+            cursor = db.cursor()
+            cursor.execute(query, (schema, nombre_tabla, nombre_columna))
+            row = cursor.fetchone()
+
+            if not row:
+                logging.warning(f"No se encontró el campo '{nombre_columna}' en '{schema}.{nombre_tabla}'.")
+                return None
+
+            columns = [col[0] for col in cursor.description]
+            return dict(zip(columns, row))
+
+    except ConnectionError as e:
+        logging.error(f"Error de conexión al consultar campo '{nombre_columna}': {e}")
+        raise
+    except Exception as e:
+        logging.error(f"Error al obtener tipo de dato: {e}")
+        return None
+
+def mostrar_columnas_tabla(nombre_tabla: str, schema: str = 'DBA'):
+    """
+    Imprime de forma formateada y numerada las columnas de una tabla.
+    """
+    columnas = obtener_columnas_tabla(nombre_tabla, schema)
+    
+    if not columnas:
+        print(f"\n[!] No se encontraron columnas para la tabla: {schema}.{nombre_tabla}\n")
+        return
+
+    ancho_titulo = 40
+    print("\n" + "=" * ancho_titulo)
+    print(f" TABLA: {schema}.{nombre_tabla}".center(ancho_titulo))
+    print(f" Total columnas: {len(columnas)}".center(ancho_titulo))
+    print("=" * ancho_titulo)
+    print(f"{'#':<4} | {'Nombre de Columna'}")
+    print("-" * ancho_titulo)
+
+    for idx, col in enumerate(columnas, start=1):
+        print(f"{idx:<4} | {col.get('column_name')}")
+
+    print("=" * ancho_titulo + "\n") 
+
+
+def inspeccionar_campo(nombre_tabla: str, nombre_columna: str, schema: str = 'DBA'):
+    """
+    Muestra en consola el tipo de dato formateado.
+    """
+    info = obtener_tipo_campo(nombre_tabla, nombre_columna, schema)
+    if not info:
+        print(f"\n[!] El campo '{nombre_columna}' no existe en {schema}.{nombre_tabla}\n")
+        return
+
+    print("\n" + "=" * 45)
+    print(f" CAMPO: {schema}.{nombre_tabla}.{nombre_columna}".center(45))
+    print("=" * 45)
+    print(f" Tipo de Dato   : {info['tipo_dato']}")
+    print(f" Longitud/Ancho : {info['longitud']}")
+    print(f" Permite Nulos  : {'Sí' if info['permite_nulos'] == 'Y' else 'No'}")
+    print("=" * 45 + "\n")
+
+#print(obtener_producto("7591031005988"))
+#print(obtener_columnas_tabla("tv_producto"))
+# print(obtener_tipo_campo("tv_producto", "cod_departamento"))
