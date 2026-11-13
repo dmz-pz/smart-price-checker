@@ -3,7 +3,7 @@
  * Controla la lógica de conexión, estados de UI y gestión de periféricos de entrada.
  */
 
-const API_BASE_URL = 'http://192.168.15.103:5020/api/v1';
+const API_BASE_URL = 'http://192.168.15.77:5020/api/v1';
 const ENABLE_MOCK_DESC = true;
 
 // --- Estado Global y Controladores ---
@@ -228,14 +228,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateUI({ loading: true });
 
-        const producto = await searchProduct(codigo, { 
-            byDescription: !isBarcode(codigo) 
+        const producto = await searchProduct(codigo, {
+            byDescription: !isBarcode(codigo)
         });
 
         if (producto) {
             updateUI({ loading: false, product: producto });
         }
-        
+
         inputElement.value = '';
     });
 });

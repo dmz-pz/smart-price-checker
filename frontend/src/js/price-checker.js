@@ -23,8 +23,11 @@
  */
 
 // ── Configuración ──────────────────────────────────────────────────────────────
-const API_BASE_URL = 'http://192.168.15.102:5020/api/v1';
-const SIGNAGE_API_URL = 'http://192.168.15.102:5030/api/v1/signage';
+// Usar la URL de origen dinámica (evita fallos cuando la IP de la máquina cambia por DHCP o en localhost)
+const API_BASE_URL = (typeof window !== 'undefined' && window.location.origin) 
+    ? `${window.location.origin}/api/v1` 
+    : 'http://localhost:5020/api/v1';
+const SIGNAGE_API_URL = 'http://192.168.15.77:5030/api/v1/signage';
 const ENABLE_MOCK_DESC = false;
 
 // ── Estado Global ──────────────────────────────────────────────────────────────
@@ -34,15 +37,15 @@ const ENABLE_MOCK_DESC = false;
 // Se usan `let` (en lugar de `const`) porque su valor cambia con cada acción.
 //
 let searchAbortController = null;   // Permite cancelar una petición fetch en curso
-let autoHideTimer        = null;    // setTimeout que oculta la tarjeta de producto
-let errorTimer           = null;    // setTimeout que limpia el mensaje de error
-let lastConfettiAt       = 0;       // Timestamp del último confetti (antiflood)
+let autoHideTimer = null;    // setTimeout que oculta la tarjeta de producto
+let errorTimer = null;    // setTimeout que limpia el mensaje de error
+let lastConfettiAt = 0;       // Timestamp del último confetti (antiflood)
 const CONFETTI_COOLDOWN_MS = 6000;
 
 // Buffer del lector de códigos de barras físico
 // El escáner envía los dígitos como eventos 'keydown' muy rápido y luego un Enter.
 // Acumulamos esos dígitos aquí cuando el input del formulario no está enfocado.
-let __scanBuffer     = '';
+let __scanBuffer = '';
 let __scanClearTimer = null;
 
 // Guarda el último producto mostrado en pantalla.
@@ -86,7 +89,7 @@ let elements = null;
  */
 function clearAllTimers() {
     if (autoHideTimer) { clearTimeout(autoHideTimer); autoHideTimer = null; }
-    if (errorTimer)    { clearTimeout(errorTimer);    errorTimer    = null; }
+    if (errorTimer) { clearTimeout(errorTimer); errorTimer = null; }
 }
 
 
@@ -114,12 +117,12 @@ const focusRestrictor = (e) => {
  * y devuelve un objeto { input, status, result, form, header, searchButton }.
  */
 function getDOMElements() {
-    elements     = getElements();
-    inputElement  = elements.input;
+    elements = getElements();
+    inputElement = elements.input;
     statusElement = elements.status;
     resultElement = elements.result;
-    searchButton  = elements.searchButton;
-    formElement   = elements.form;
+    searchButton = elements.searchButton;
+    formElement = elements.form;
     headerElement = elements.header;
 }
 
@@ -208,7 +211,7 @@ function updateUI(state) {
 
         // Auto-ocultar con animación fade-out tras 5 segundos.
         const ANIM_IN_DURATION = 420;  // debe coincidir con slideUpFade en CSS
-        const DISPLAY_TIME     = 5000; // tiempo que el producto permanece visible
+        const DISPLAY_TIME = 5000; // tiempo que el producto permanece visible
 
         const card = resultElement.querySelector('.product-card');
 
@@ -349,9 +352,9 @@ function isBarcode(text) {
  */
 async function handleBentoSelect(productoResumen) {
     updateUI({ loading: true });
- 
+
     const codigo = productoResumen.codigo_barras ?? productoResumen.id;
- 
+
     try {
         const res = await priceApi.searchByCode(codigo);
         if (!res.ok) throw new Error(`Producto '${productoResumen.nombre}' no encontrado`);
@@ -395,10 +398,10 @@ document.addEventListener('DOMContentLoaded', () => {
     signageManager = new SignageManager({
         signageApiUrl: SIGNAGE_API_URL,
         canStartCallback: () => {
-            const hasCard  = Boolean(resultElement?.querySelector('.product-card'));
+            const hasCard = Boolean(resultElement?.querySelector('.product-card'));
             const hasBento = Boolean(resultElement?.querySelector('.bento-card'));
-            const hasText  = Boolean(inputElement?.value.trim());
-            const hasScan  = __scanBuffer.length > 0;
+            const hasText = Boolean(inputElement?.value.trim());
+            const hasScan = __scanBuffer.length > 0;
             return !hasCard && !hasBento && !hasText && !hasScan;
         },
         onExitSignage: () => {

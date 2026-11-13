@@ -2,7 +2,9 @@
  * Lógica para el Verificador de Precios con actualización de tasa BCV.
  */
 
-const API_BASE_URL = 'http://192.168.15.102:5020/api/v1';
+const API_BASE_URL = (typeof window !== 'undefined' && window.location.origin)
+    ? `${window.location.origin}/api/v1`
+    : 'http://localhost:5020/api/v1';
 
 // Variables de estado
 let lastTasaValue = null;
@@ -17,7 +19,7 @@ async function actualizarTasaDolar() {
     try {
         const response = await fetch(`${API_BASE_URL}/tasa`);
         if (!response.ok) throw new Error('Error al obtener tasa');
-        
+
         const data = await response.json();
         const tasa = data.tasa;
 

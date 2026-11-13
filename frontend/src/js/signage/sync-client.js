@@ -36,13 +36,23 @@ function buildLocalDemoManifest(defaultTimeoutSec = 30) {
         playlist: {
             id: 1,
             name: 'Playlist Demo Local (IndexedDB)',
-            version: 1,
+            version: 2,
             inactivity_timeout_sec: defaultTimeoutSec,
             show_banner: true,
             banner_text: 'Pase su producto por el lector o toque la pantalla para consultar el precio',
             items: [
                 {
                     sort_order: 1,
+                    media_id: 201,
+                    title: 'Video Promocional Indio',
+                    media_type: 'video',
+                    mime_type: 'video/mp4',
+                    checksum_sha256: 'demo-local-asset-indio-mp4',
+                    duration_sec: null,
+                    download_url: 'assets/img/indio.mp4'
+                },
+                {
+                    sort_order: 2,
                     media_id: 101,
                     title: 'Promoción Destacada 1',
                     media_type: 'image',
@@ -52,7 +62,7 @@ function buildLocalDemoManifest(defaultTimeoutSec = 30) {
                     download_url: 'assets/img/1.webp'
                 },
                 {
-                    sort_order: 2,
+                    sort_order: 3,
                     media_id: 102,
                     title: 'Promoción Destacada 2',
                     media_type: 'image',
@@ -62,7 +72,7 @@ function buildLocalDemoManifest(defaultTimeoutSec = 30) {
                     download_url: 'assets/img/2.webp'
                 },
                 {
-                    sort_order: 3,
+                    sort_order: 4,
                     media_id: 103,
                     title: 'Promoción Destacada 3',
                     media_type: 'image',
@@ -133,12 +143,16 @@ export class SignageSyncClient {
         // Paso 2: Intentar sincronizar con el Servidor CMS (Proyecto 2) en segundo plano
         const remoteSuccess = await this.syncFromRemoteServer();
 
-        // Paso 3: Si el servidor CMS aún no está activo y no teníamos nada en IndexedDB,
-        // hidratar IndexedDB con la Playlist Demo Local para que el verificador sea 100% funcional
+        // Paso 3: Si el servidor CMS aún no está activo, verificar si el manifiesto demo local
+        // es nuevo o tiene una versión superior (v2) para actualizar e hidratar IndexedDB
         if (!remoteSuccess) {
             const currentManifest = await getStoredManifest();
-            if (!currentManifest?.playlist?.items?.length) {
-                await this._bootstrapLocalDemoInIndexedDB();
+            const demoManifest = buildLocalDemoManifest(this.defaultTimeoutSec);
+            const needsUpdate = !currentManifest?.playlist?.items?.length ||
+                                (currentManifest?.playlist?.version ?? 0) < demoManifest.playlist.version;
+
+            if (needsUpdate) {
+                await this._bootstrapLocalDemoInIndexedDB(demoManifest);
             }
         } else {
             // Si el servidor CMS respondió, conectar canal de eventos en tiempo real (SSE)
@@ -148,11 +162,12 @@ export class SignageSyncClient {
 
     /**
      * Descarga y guarda en IndexedDB la Playlist Demo Local.
+     * @param {Object} [manifest]
      */
-    async _bootstrapLocalDemoInIndexedDB() {
+    async _bootstrapLocalDemoInIndexedDB(manifest) {
         try {
             this._setSyncIndicator('syncing', 'Preparando Playlist Demo en IndexedDB...');
-            const demoManifest = buildLocalDemoManifest(this.defaultTimeoutSec);
+            const demoManifest = manifest || buildLocalDemoManifest(this.defaultTimeoutSec);
             await this._downloadAndStoreItems(demoManifest);
             await saveStoredManifest(demoManifest);
             this._setSyncIndicator('local', 'Modo Demo Offline-First activo (IndexedDB)');
