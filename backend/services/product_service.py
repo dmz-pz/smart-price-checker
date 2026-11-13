@@ -69,30 +69,52 @@ def consultar_detalle_producto(cod_barra: str) -> Optional[Dict[str, Any]]:
         producto_peso = cod_barra[7:12]
         raw_data = obtener_producto(id_producto_pesado)
     else:
-        # Completar el código de barras con ceros a la izquierda si tiene menos de 13 dígitos
-        if len(cod_barra) < 13:
-            cod_barra = cod_barra.zfill(13)
+        # Mejor práctica: Intentar primero con el código tal como fue leído
         raw_data = obtener_producto(cod_barra)
+        # Si no se encuentra y tiene menos de 13 dígitos, intentar con ceros a la izquierda
+        if not raw_data and len(cod_barra) < 13:
+            raw_data = obtener_producto(cod_barra.zfill(13))
 
     if not raw_data:
+        print(f"[SERVICE] obtener_producto retornó None para '{cod_barra}' (incluso tras zfill)")
         # Si no hay datos, retorna None (el controlador Flask manejará el 404) 
         return None 
+    
+    print(f"[SERVICE] raw_data obtenido: {raw_data}") 
     
     # ---------------------------------------------
     # PASO 2: Mapear y Limpiar datos base
     # ---------------------------------------------
     try:
-        # Supongamos que raw_data = (cod_interno, desc, precio, fecha_cambio, impuesto, tasa, inactivo)
-        raw_price = float(raw_data[2])
-        iva_pct = float(raw_data[3])
+        # Mejor práctica: Mapeo por nombres de columna (diccionario)
+        # Es inmune a cambios en el orden o adición de campos en el SELECT de SQL
+        if isinstance(raw_data, dict):
+            cod_interno = str(raw_data.get('cod_interno', '')).strip()
+            codigo_barras_res = str(raw_data.get('cod_barra', cod_barra)).strip()
+            nombre = str(raw_data.get('txt_descripcion_larga', '')).strip()
+            raw_price = float(raw_data.get('mto_precio', 0.0))
+            iva_pct = float(raw_data.get('porc_impuesto', 0.0))
+            tasa_cambio = float(raw_data.get('tasa_vig', 0.0))
+            if raw_data.get('ind_pesado') == 'S':
+                es_pesado = True
+        else:
+            # Respaldo en caso de recibir tupla legacy
+            cod_interno = str(raw_data[0]).strip()
+            codigo_barras_res = str(raw_data[1]).strip() if len(raw_data) > 1 else cod_barra
+            nombre = str(raw_data[2]).strip() if len(raw_data) > 2 else ''
+            raw_price = float(raw_data[3]) if len(raw_data) > 3 else 0.0
+            iva_pct = float(raw_data[4]) if len(raw_data) > 4 else 0.0
+            tasa_cambio = float(raw_data[7]) if len(raw_data) > 7 else float(raw_data[-1])
+
         producto: Dict[str, Any] = {
-            "id": raw_data[0].strip(),
-            "nombre": raw_data[1].strip(),
+            "id": cod_interno,
+            "codigo_barras": codigo_barras_res,
+            "nombre": nombre,
             # Nota: el campo en BD trae el precio final con IVA; calculamos el precio base real
             "precio_final_db": raw_price,
             "precio_base": calcular_precio_base_desde_final(raw_price, iva_pct),
             "iva_porcentaje": iva_pct,
-            "tasa_cambio": float(raw_data[4]),
+            "tasa_cambio": tasa_cambio,
             # Inicializamos campos de descuento
             "porcentaje_descuento": 0.0,
             "promocion": False,

@@ -6,13 +6,21 @@ api_bp = Blueprint('api', __name__)
 
 @api_bp.route("/buscar_producto/<string:codigo_barras>", methods=["GET"])
 def buscar_producto_por_codigo(codigo_barras: str):
+    print(f"\n==========================================")
+    print(f"[API] Petición recibida para código: '{codigo_barras}'")
     try:
         producto_final = consultar_detalle_producto(codigo_barras)
         if producto_final is None:
+            print(f"[API] Resultado: None -> respondiendo 404")
             return abort(404, description=f"Código '{codigo_barras}' no encontrado.")
+        print(f"[API] Resultado: Encontrado -> {producto_final.get('nombre')}")
         return jsonify(producto_final), 200
-    except ConnectionError:
+    except ConnectionError as ce:
+        print(f"[API] ConnectionError: {ce}")
         return abort(500, description="Error al conectar con la Base de Datos.")
+    except Exception as e:
+        print(f"[API] Error inesperado en ruta: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @api_bp.route('/tasa') 
 def get_bcv_rate():

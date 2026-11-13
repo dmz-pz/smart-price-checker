@@ -6,6 +6,7 @@ from datetime import date
 logging.basicConfig(level=logging.ERROR)
 
 def obtener_producto(cod_producto):
+    cod_producto = str(cod_producto).strip()
     try:
         with MiConexionBD() as db:
             querie = """
@@ -32,15 +33,22 @@ def obtener_producto(cod_producto):
             """
             cursor = db.cursor()
             cursor.execute(querie, (cod_producto,))
-            result = cursor.fetchone()
-            if result is None:
+            row = cursor.fetchone()
+            producto = None
+
+            if row:
+                columns = [col[0].lower() for col in cursor.description]
+                producto = dict(zip(columns, row))
+            else:
                 logging.warning(f"Producto '{cod_producto}' no encontrado en DB.")
-            return result
+
+            return producto
     except ConnectionError as e:
         # Error crítico: propaga para que app.py lo maneje como 500
         logging.error(f"Error de conexión en obtener_producto para '{cod_producto}': {e}")
         raise
     except Exception as e:
+        print(f"[DB ERROR] Error en obtener_producto para '{cod_producto}': {e}")
         # Error no crítico (e.g., sintaxis, datos inválidos): log y retorna None
         logging.error(f"Error inesperado en obtener_producto para '{cod_producto}': {e}")
         return None
