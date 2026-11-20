@@ -111,9 +111,11 @@ erDiagram
 
     DEVICES {
         int id PK
-        varchar(50) device_code UK "Ej: VERIF-PASILLO-01"
-        varchar(45) ip_address UK "Reportada por el verificador"
+        varchar(50) device_code UK "Ej: VERIF-PASILLO-01 o TV-CARNICERIA-01"
+        varchar(45) ip_address UK "Reportada por el dispositivo"
         varchar(100) name "Nombre descriptivo"
+        varchar(30) device_type "price_checker | turn_display"
+        varchar(50) queue_department "carniceria | charcuteria | all | NULL"
         varchar(50) zone "Carnicería, Licores, etc."
         int assigned_playlist_id FK "Nullable"
         boolean audio_enabled "Default: FALSE (muted)"
