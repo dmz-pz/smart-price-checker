@@ -406,4 +406,374 @@ body.signage-mode-active::before {
     background-color: #ef4444;
 }
 
+/* ── Pantalla Dedicada Multi-Zona (/turnos: 70% Publicidad / 30% Turnos) ───── */
+body.turnos-tv-body {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background-color: #0b111e;
+    background-image: none;
+    font-family: 'Inter', 'Arial', sans-serif;
+}
+
+body.turnos-tv-body::before {
+    display: none !important;
+}
+
+.turnos-grid-layout {
+    display: grid;
+    grid-template-columns: 7fr 3fr;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Zona Izquierda (70%): Cabecera + Reproductor + Cintillo */
+.turnos-media-zone {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #000000;
+    overflow: hidden;
+    border-right: 4px solid #1e293b;
+}
+
+.turnos-media-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
+    border-bottom: 2px solid rgba(59, 130, 246, 0.35);
+    flex-shrink: 0;
+}
+
+.turnos-brand-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.turnos-brand-logo {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+}
+
+.turnos-brand-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(1.6rem, 2.5vw, 2.4rem);
+    letter-spacing: 0.06em;
+    color: #ffffff;
+    line-height: 1;
+    margin: 0;
+}
+
+.turnos-brand-subtitle {
+    color: #93c5fd;
+    font-size: clamp(0.8rem, 1.1vw, 1rem);
+    font-weight: 600;
+    margin: 0.15rem 0 0 0;
+}
+
+.turnos-header-widgets {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.turnos-info-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #f8fafc;
+    padding: 0.45rem 0.9rem;
+    border-radius: 9999px;
+    font-size: clamp(0.85rem, 1.2vw, 1.1rem);
+    font-weight: 700;
+}
+
+.turnos-bcv-icon {
+    height: 22px;
+    width: 22px;
+    object-fit: contain;
+}
+
+/* Sobrescribe #signage-overlay cuando está dentro de la pantalla dividida 70/30 */
+#signage-overlay.turnos-player-stage {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    flex: 1 1 auto;
+    z-index: 1;
+    cursor: default;
+}
+
+.turnos-promo-banner {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(6, 12, 24, 0.92);
+    border-top: 3px solid #facc15;
+    color: #ffffff;
+    padding: 0.9rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    font-size: clamp(1.35rem, 2.5vw, 2.25rem);
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 0.01em;
+}
+
+/* Zona Derecha (30%): Columna de Turnos RapidCola */
+.turnos-queue-zone {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #f1f5f9;
+    color: #0f172a;
+    padding: 0.85rem;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.turnos-queue-header {
+    background-color: #475569;
+    color: #ffffff;
+    border-radius: 0.75rem;
+    padding: 0.65rem 1rem;
+    text-align: center;
+    margin-bottom: 0.75rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.turnos-queue-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.turnos-queue-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2rem, 3.2vw, 3rem);
+    letter-spacing: 0.08em;
+    line-height: 1;
+}
+
+.turnos-queue-subtitle {
+    margin: 0.15rem 0 0 0;
+    font-size: 0.85rem;
+    color: #e2e8f0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.turnos-status-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+    background-color: rgba(15, 23, 42, 0.45);
+}
+.turnos-status-badge[data-status="online"] { color: #4ade80; }
+.turnos-status-badge[data-status="demo"]   { color: #facc15; }
+
+.turnos-cards-list {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 0;
+}
+
+/* Tarjeta de Departamento (Modo Apilado Multi-Departamento) */
+.turno-dept-card {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    border-radius: 1rem;
+    overflow: hidden;
+    color: #ffffff;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s ease;
+}
+
+.turno-card-header {
+    padding: 0.45rem 1rem;
+    font-size: clamp(1.3rem, 2.2vw, 2.1rem);
+    font-weight: 900;
+    text-align: center;
+    letter-spacing: 0.05em;
+    background-color: rgba(0, 0, 0, 0.18);
+    text-transform: uppercase;
+}
+
+.turno-card-body {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0.5rem 1.25rem;
+}
+
+.turno-icon-circle {
+    width: clamp(3.5rem, 5.5vw, 5.5rem);
+    height: clamp(3.5rem, 5.5vw, 5.5rem);
+    border-radius: 9999px;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(1.75rem, 2.8vw, 2.75rem);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    flex-shrink: 0;
+}
+
+.turno-number-display {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(3.5rem, 6.8vw, 6.5rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Tarjeta Modo Departamento Único (?dept=carniceria o ?dept=charcuteria) */
+.turno-dept-card-single {
+    justify-content: space-between;
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+}
+
+.turno-single-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.turno-dept-name-single {
+    font-size: clamp(2rem, 3.2vw, 3rem);
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.turno-single-number-box {
+    background-color: rgba(0, 0, 0, 0.22);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-radius: 1.25rem;
+    padding: 1.5rem 1rem;
+    margin: 1rem 0;
+}
+
+.turno-single-label {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+}
+
+.turno-number-hero {
+    font-size: clamp(5rem, 10vw, 9.5rem);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    text-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.turno-customer-name {
+    margin: 0.85rem 0 0 0;
+    font-size: clamp(1.1rem, 1.6vw, 1.5rem);
+    font-weight: 700;
+    background-color: rgba(255, 255, 255, 0.18);
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    display: inline-block;
+}
+
+.turno-waiting-box {
+    background-color: rgba(0, 0, 0, 0.18);
+    border-radius: 0.85rem;
+    padding: 0.85rem;
+}
+
+.turno-waiting-title {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    opacity: 0.85;
+    margin-bottom: 0.5rem;
+}
+
+.turno-waiting-pills {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.turno-waiting-pill {
+    background-color: #ffffff;
+    color: #0f172a;
+    font-weight: 900;
+    font-size: clamp(1.1rem, 1.6vw, 1.5rem);
+    padding: 0.25rem 0.85rem;
+    border-radius: 0.5rem;
+}
+
+/* Paleta de Colores de Alto Contraste por Departamento */
+.dept-theme-fruteria {
+    background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
+}
+.dept-theme-fruteria .turno-icon-circle { color: #2e7d32; }
+
+.dept-theme-pescaderia {
+    background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
+}
+.dept-theme-pescaderia .turno-icon-circle { color: #0d47a1; }
+
+.dept-theme-carniceria {
+    background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);
+}
+.dept-theme-carniceria .turno-icon-circle { color: #991b1b; }
+
+.dept-theme-charcuteria {
+    background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+}
+.dept-theme-charcuteria .turno-icon-circle { color: #b45309; }
+
+/* Animación de Alerta cuando se llama un nuevo turno */
+@keyframes turnCallPulse {
+    0%, 100% { transform: scale(1); filter: brightness(1); }
+    25%, 75% { transform: scale(1.03); filter: brightness(1.25); box-shadow: 0 0 0 6px #facc15; }
+    50%      { transform: scale(0.99); filter: brightness(1); }
+}
+
+.turno-card-calling {
+    animation: turnCallPulse 0.9s ease-in-out 3;
+}
+
+.turnos-queue-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.6rem;
+    color: #475569;
+    flex-shrink: 0;
+}
+
 /* End of file */

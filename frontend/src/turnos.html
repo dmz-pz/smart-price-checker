@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pantalla de Turnos y Señalización Digital</title>
+    <link rel="stylesheet" href="css/output.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="turnos-tv-body">
+
+    <!-- Layout Principal 70% Publicidad / 30% Turnos (CSS Grid) -->
+    <main class="turnos-grid-layout">
+
+        <!-- ================= ZONA IZQUIERDA (70%): MULTIMEDIA Y MARCA ================= -->
+        <section class="turnos-media-zone">
+            <!-- Barra Superior de Marca, Reloj y Tasa -->
+            <header class="turnos-media-header">
+                <div class="turnos-brand-group">
+                    <img src="assets/img/logo_minegocio.png" alt="Logo" class="turnos-brand-logo" />
+                    <div>
+                        <h1 class="turnos-brand-title">SUPERMERCADO</h1>
+                        <p id="turnos-zone-subtitle" class="turnos-brand-subtitle">Cartelería Digital &amp; Atención por Turnos</p>
+                    </div>
+                </div>
+
+                <div class="turnos-header-widgets">
+                    <div id="turnos-bcv-pill" class="turnos-info-pill">
+                        <img src="assets/img/logo-bcv.webp" alt="BCV" class="turnos-bcv-icon" />
+                        <span>BCV: <strong id="turnos-bcv-value">--</strong></span>
+                    </div>
+                    <div class="turnos-info-pill">
+                        <i class="fa-regular fa-clock text-yellow-400"></i>
+                        <span id="tiempo">00:00:00</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Contenedor del Reproductor (Reutiliza SignagePlayer + IndexedDB) -->
+            <div id="signage-overlay" class="turnos-player-stage" aria-hidden="false">
+                <video
+                    id="signage-video"
+                    class="signage-media signage-hidden"
+                    preload="auto"
+                    muted
+                    playsinline
+                ></video>
+                <img
+                    id="signage-image"
+                    class="signage-media signage-hidden"
+                    alt="Promoción del Departamento"
+                />
+
+                <!-- Cintillo Inferior de Oferta -->
+                <div id="signage-banner" class="turnos-promo-banner">
+                    <i class="fa-solid fa-bullhorn text-yellow-400"></i>
+                    <span id="signage-banner-text">Ofertas especiales del día en nuestro departamento</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= ZONA DERECHA (30%): TURNOS RAPIDCOLA ================= -->
+        <aside class="turnos-queue-zone">
+            <div class="turnos-queue-header">
+                <div class="turnos-queue-header-top">
+                    <span class="turnos-queue-title">TURNO</span>
+                    <span id="rapidcola-status-badge" class="turnos-status-badge" data-status="demo">
+                        ● RapidCola
+                    </span>
+                </div>
+                <p id="turnos-queue-hint" class="turnos-queue-subtitle">Atención en Mostrador</p>
+            </div>
+
+            <!-- Contenedor Dinámico de Tarjetas de Turno por Departamento -->
+            <div id="queue-cards-container" class="turnos-cards-list">
+                <!-- Renderizado dinámicamente por turnos-display.js -->
+            </div>
+
+            <!-- Pie de estado técnico discreto -->
+            <footer class="turnos-queue-footer">
+                <div class="flex items-center gap-2">
+                    <span id="signage-sync-dot" data-sync-state="local" title="Estado IndexedDB"></span>
+                    <span id="device-ip" class="font-mono text-xs opacity-75">Cargando IP...</span>
+                </div>
+                <span id="turnos-demo-shortcut" class="text-xs opacity-60">Tecla [Espacio]: Simular turno</span>
+            </footer>
+        </aside>
+
+    </main>
+
+    <script type="module" src="js/utils/tiempo.js"></script>
+    <script type="module" src="js/signage/turnos-display.js"></script>
+</body>
+</html>
