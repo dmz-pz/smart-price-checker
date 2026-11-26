@@ -58,15 +58,6 @@ const DEPARTMENT_THEMES = {
     }
 };
 
-// Mensajes del cintillo inferior adaptados a la atención por turnos y promociones de cada departamento
-const DEPARTMENT_BANNERS = {
-    carniceria: 'Atención por turno en Carnicería • Solicite sus cortes especiales con nuestro personal',
-    charcuteria: 'Atención por turno en Charcutería • Variedad en quesos frescos y embutidos de primera',
-    pescaderia: 'Atención por turno en Pescadería • Pescados y mariscos frescos seleccionados del día',
-    fruteria: 'Atención por turno en Frutería • Frutas y verduras frescas directamente del campo',
-    all: 'Conserve su ticket y esté atento a la pantalla • Ofertas especiales del día en nuestros departamentos'
-};
-
 class TurnosDisplayController {
     constructor() {
         const params = new URLSearchParams(window.location.search);
@@ -151,37 +142,13 @@ class TurnosDisplayController {
         } catch (_) {}
     }
 
-    _getDepartmentBannerText(deptSlug) {
-        return DEPARTMENT_BANNERS[deptSlug] || DEPARTMENT_BANNERS.all;
-    }
-
-    _updateBannerText() {
-        const bannerTxt = document.getElementById('signage-banner-text');
-        if (bannerTxt) {
-            bannerTxt.textContent = this._getDepartmentBannerText(this.activeDept);
-        }
-    }
-
     _onSignageManifestReady(manifest) {
         // Si el Dashboard remoto especifica un departamento para esta pantalla y no fue forzado por URL
         const remoteDept = manifest?.device?.queue_department;
         if (!this.urlDept && remoteDept && remoteDept !== this.activeDept) {
             this.activeDept = remoteDept.toLowerCase();
             this._updateHeaderSubtitle();
-            this._updateBannerText();
             this.refreshQueueDisplay();
-        }
-
-        // En pantallas de turnos (TVs de departamento), el cintillo inferior muestra avisos de atención
-        // o promociones del departamento, NUNCA la instrucción interactiva del kiosco verificador ("Pase su producto...").
-        if (manifest?.playlist) {
-            const kioskPhrases = ['pase su producto', 'consultar el precio', 'lector', 'toque la pantalla'];
-            const currentText = (manifest.playlist.banner_text || '').toLowerCase();
-            const isKioskBanner = kioskPhrases.some(phrase => currentText.includes(phrase));
-
-            if (!manifest.playlist.banner_text || isKioskBanner) {
-                manifest.playlist.banner_text = this._getDepartmentBannerText(this.activeDept);
-            }
         }
 
         this.player.configure(manifest);
@@ -451,17 +418,14 @@ class TurnosDisplayController {
             } else if (ev.key === '1') {
                 this.activeDept = 'carniceria';
                 this._updateHeaderSubtitle();
-                this._updateBannerText();
                 this.refreshQueueDisplay();
             } else if (ev.key === '2') {
                 this.activeDept = 'charcuteria';
                 this._updateHeaderSubtitle();
-                this._updateBannerText();
                 this.refreshQueueDisplay();
             } else if (ev.key === '0') {
                 this.activeDept = 'all';
                 this._updateHeaderSubtitle();
-                this._updateBannerText();
                 this.refreshQueueDisplay();
             }
         });
