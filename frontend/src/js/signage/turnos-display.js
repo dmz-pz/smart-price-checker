@@ -222,43 +222,57 @@ class TurnosDisplayController {
             rawItems = payload;
         } else if (Array.isArray(payload.departments)) {
             rawItems = payload.departments;
+        } else if (payload.departments && typeof payload.departments === 'object') {
+            // Estructura real de RapidCola GET /api/display: { departments: { carniceria: {...}, charcuteria: {...} } }
+            rawItems = Object.entries(payload.departments)
+                .map(([k, v]) => (v && typeof v === 'object' ? { slug: k, ...v } : null))
+                .filter(Boolean);
         } else if (Array.isArray(payload.displays)) {
             rawItems = payload.displays;
-        } else if (fallbackSlug) {
-            rawItems = [{ slug: fallbackSlug, ...payload }];
+        } else if (fallbackSlug || payload.department || payload.current_serving !== undefined) {
+            rawItems = [{ ...(fallbackSlug ? { slug: fallbackSlug } : {}), ...payload }];
         } else if (typeof payload === 'object') {
-            // Si es un mapa { carniceria: {...}, charcuteria: {...} }
-            rawItems = Object.entries(payload).map(([k, v]) => (typeof v === 'object' ? { slug: k, ...v } : null)).filter(Boolean);
+            // Si es un mapa directo { carniceria: {...}, charcuteria: {...} }
+            rawItems = Object.entries(payload).map(([k, v]) => (v && typeof v === 'object' ? { slug: k, ...v } : null)).filter(Boolean);
         }
 
         return rawItems.map((item) => {
-            const slug = String(item.slug || item.department || fallbackSlug || 'carniceria').toLowerCase();
+            const deptInfo = (item.department && typeof item.department === 'object') ? item.department : null;
+            const slug = String(
+                item.slug ||
+                deptInfo?.slug ||
+                (typeof item.department === 'string' ? item.department : '') ||
+                fallbackSlug ||
+                'carniceria'
+            ).toLowerCase();
+
             const theme = DEPARTMENT_THEMES[slug] || {
                 slug,
-                name: String(item.name || slug).toUpperCase(),
-                prefix: item.prefix || '',
+                name: String(deptInfo?.name || item.name || slug).toUpperCase(),
+                prefix: deptInfo?.prefix || item.prefix || '',
                 colorClass: 'dept-theme-carniceria',
                 icon: 'fa-solid fa-ticket'
             };
 
-            // Extraer el número de turno actual sin importar cómo lo llame el backend de RapidCola
-            const currentObj = item.current_ticket || item.current || item.active_ticket || null;
+            // Extraer el número de turno actual (RapidCola usa `current_serving.ticket_number`)
+            const currentObj = item.current_serving || item.current_ticket || item.current || item.active_ticket || null;
             const rawNum = (currentObj && typeof currentObj === 'object')
-                ? (currentObj.number ?? currentObj.ticket_number ?? currentObj.code ?? currentObj.id)
+                ? (currentObj.ticket_number ?? currentObj.number ?? currentObj.code ?? currentObj.id ?? 0)
                 : (currentObj ?? item.current_number ?? item.ticket_number ?? item.number ?? 0);
 
             const formattedNumber = String(rawNum).padStart(3, '0');
             const customerName = (currentObj && typeof currentObj === 'object' ? currentObj.customer_name : item.customer_name) || '';
 
-            // Extraer próximos turnos en espera si existen
-            const rawWaiting = item.waiting_tickets || item.queue || item.next_tickets || item.waiting || [];
+            // Extraer próximos turnos en espera (RapidCola usa `next_5_waiting`)
+            const rawWaiting = item.next_5_waiting || item.waiting_tickets || item.queue || item.next_tickets || item.waiting || [];
             const waitingList = Array.isArray(rawWaiting)
-                ? rawWaiting.slice(0, 4).map(t => String(typeof t === 'object' ? (t.number ?? t.ticket_number ?? t.id) : t).padStart(3, '0'))
+                ? rawWaiting.slice(0, 4).map(t => String(typeof t === 'object' ? (t.ticket_number ?? t.number ?? t.id) : t).padStart(3, '0'))
                 : [];
 
+            const displayName = deptInfo?.name || item.name;
             return {
                 slug,
-                name: item.name ? String(item.name).toUpperCase() : theme.name,
+                name: displayName ? String(displayName).toUpperCase() : theme.name,
                 colorClass: theme.colorClass,
                 icon: theme.icon,
                 formattedNumber,
